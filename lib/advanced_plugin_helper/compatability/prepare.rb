@@ -103,6 +103,24 @@ module AdvancedPluginHelper
           end
         end
       end
+
+      ##
+      # Apply block when running with Rails 7.
+      # Does not appear to change from Rails 6
+      # :reek:UncommunicativeModuleName
+      class V7 < Base
+        def self.apply(block)
+          BlockStorage.block << block.call
+
+          Class.new(Redmine::Hook::ViewListener) do
+            def after_plugins_loaded(_context = {})
+              BlockStorage.block.each do |data|
+                data[:klass].send data[:method]
+              end
+            end
+          end
+        end
+      end
     end
   end
 end
